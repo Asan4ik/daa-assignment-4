@@ -156,8 +156,55 @@ def rk(request: dict) -> dict:
     return {'positions': positions}
 
 
+def pair_key(rank: list, step: int):
+    size = len(rank)
+    return lambda i: (rank[i], rank[i + step] if i + step < size else -1)
+
+
+def suffix_array(text: str) -> tuple:
+    size = len(text)
+    rank = [ord(char) for char in text]
+    sa = list(range(size))
+    step = 1
+    while True:
+        key = pair_key(rank, step)
+        sa.sort(key=key)
+        updated = [0] * size
+        for i in range(1, size):
+            differs = key(sa[i - 1]) != key(sa[i])
+            updated[sa[i]] = updated[sa[i - 1]] + differs
+        rank = updated
+        if rank[sa[-1]] == size - 1:
+            return sa, rank
+        step *= 2
+
+
+def kasai(text: str, sa: list, rank: list) -> list:
+    size = len(text)
+    lcp = [0] * size
+    reused = 0
+    for i in range(size):
+        if rank[i] == 0:
+            reused = 0
+            continue
+        j = sa[rank[i] - 1]
+        while i + reused < size and j + reused < size and text[i + reused] == text[j + reused]:
+            reused += 1
+        lcp[rank[i]] = reused
+        if reused:
+            reused -= 1
+    return lcp
+
+
 def suffix(request: dict) -> dict:
-    raise NotImplementedError("TODO suffix")
+    text = request['text']
+    if not text:
+        return {'sa': [], 'lcp': [], 'repeated': ''}
+    sa, rank = suffix_array(text)
+    lcp = kasai(text, sa, rank)
+    best = lcp.index(max(lcp))
+    start = sa[best]
+    return {'sa': sa, 'lcp': lcp, 'repeated': text[start:start + lcp[best]]}
 
 
 def aho(request: dict) -> dict:
