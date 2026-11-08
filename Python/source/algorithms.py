@@ -55,7 +55,36 @@ def merge(request: dict) -> dict:
 
 
 def tree(request: dict) -> dict:
-    raise NotImplementedError("TODO tree")
+    count = request['n']
+    if count == 0:
+        return {'weight': 0, 'selected': []}
+    neighbours = [[] for _ in range(count)]
+    for u, v in request['edges']:
+        neighbours[u].append(v)
+        neighbours[v].append(u)
+    parent = [-1] * count
+    order = [0]
+    for vertex in order:
+        for other in neighbours[vertex]:
+            if other != parent[vertex]:
+                parent[other] = vertex
+                order.append(other)
+    take = list(request['weights'])
+    skip = [0] * count
+    for vertex in reversed(order):
+        up = parent[vertex]
+        if up >= 0:
+            take[up] += skip[vertex]
+            skip[up] += max(take[vertex], skip[vertex])
+    chosen = [False] * count
+    for vertex in order:
+        up = parent[vertex]
+        blocked = up >= 0 and chosen[up]
+        chosen[vertex] = not blocked and take[vertex] > skip[vertex]
+    return {
+        'weight': max(take[0], skip[0]),
+        'selected': [vertex for vertex in range(count) if chosen[vertex]],
+    }
 
 
 def naive(request: dict) -> dict:
