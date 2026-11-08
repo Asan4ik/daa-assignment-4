@@ -23,7 +23,35 @@ def lcs(request: dict) -> dict:
 
 
 def merge(request: dict) -> dict:
-    raise NotImplementedError("TODO merge")
+    sizes = request['sizes']
+    count = len(sizes)
+    if count < 2:
+        return {'cost': 0, 'plan': []}
+    prefix = [0]
+    for size in sizes:
+        prefix.append(prefix[-1] + size)
+    cost = [[0] * count for _ in range(count)]
+    split = [[0] * count for _ in range(count)]
+    for length in range(2, count + 1):
+        for left in range(count - length + 1):
+            right = left + length - 1
+            best, cut = min((cost[left][k] + cost[k + 1][right], k) for k in range(left, right))
+            cost[left][right] = best + prefix[right + 1] - prefix[left]
+            split[left][right] = cut
+    plan = []
+    stack = [(0, count - 1, False)]
+    while stack:
+        left, right, ready = stack.pop()
+        if left == right:
+            continue
+        cut = split[left][right]
+        if ready:
+            plan.append([left, cut, right])
+        else:
+            stack.append((left, right, True))
+            stack.append((cut + 1, right, False))
+            stack.append((left, cut, False))
+    return {'cost': cost[0][count - 1], 'plan': plan}
 
 
 def tree(request: dict) -> dict:
