@@ -131,8 +131,29 @@ def kmp(request: dict) -> dict:
     return {'positions': positions}
 
 
+BASE = 31
+MODULUS = 101
+
+
 def rk(request: dict) -> dict:
-    raise NotImplementedError("TODO rk")
+    text, pattern = request['text'], request['pattern']
+    length, size = len(text), len(pattern)
+    if size == 0:
+        return {'positions': list(range(length + 1))}
+    if size > length:
+        return {'positions': []}
+    lead = pow(BASE, size - 1, MODULUS)
+    target = window = 0
+    for i in range(size):
+        target = (target * BASE + ord(pattern[i])) % MODULUS
+        window = (window * BASE + ord(text[i])) % MODULUS
+    positions = []
+    for start in range(length - size + 1):
+        if window == target and text[start:start + size] == pattern:
+            positions.append(start)
+        if start + size < length:
+            window = ((window - ord(text[start]) * lead) * BASE + ord(text[start + size])) % MODULUS
+    return {'positions': positions}
 
 
 def suffix(request: dict) -> dict:
