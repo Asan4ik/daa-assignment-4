@@ -207,5 +207,47 @@ def suffix(request: dict) -> dict:
     return {'sa': sa, 'lcp': lcp, 'repeated': text[start:start + lcp[best]]}
 
 
+def advance(children: list, fail: list, node: int, char: str) -> int:
+    while node and char not in children[node]:
+        node = fail[node]
+    return children[node].get(char, 0)
+
+
+def build_automaton(patterns: list) -> tuple:
+    children = [{}]
+    terminal = []
+    for pattern in patterns:
+        node = 0
+        for char in pattern:
+            nxt = children[node].get(char)
+            if nxt is None:
+                nxt = len(children)
+                children[node][char] = nxt
+                children.append({})
+            node = nxt
+        terminal.append(node)
+    fail = [0] * len(children)
+    order = [0]
+    for node in order:
+        for char, child in children[node].items():
+            if node:
+                fail[child] = advance(children, fail, fail[node], char)
+            order.append(child)
+    return children, fail, order, terminal
+
+
 def aho(request: dict) -> dict:
-    raise NotImplementedError("TODO aho")
+    children, fail, order, terminal = build_automaton(request['patterns'])
+    upward = order[:0:-1]
+    counts = []
+    for text in request['texts']:
+        visits = [0] * len(children)
+        node = 0
+        for char in text:
+            node = advance(children, fail, node, char)
+            visits[node] += 1
+        for node in upward:
+            if visits[node]:
+                visits[fail[node]] += visits[node]
+        counts.append([visits[node] for node in terminal])
+    return {'counts': counts}
