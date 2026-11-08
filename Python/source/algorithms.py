@@ -88,7 +88,16 @@ def tree(request: dict) -> dict:
 
 
 def naive(request: dict) -> dict:
-    raise NotImplementedError("TODO naive")
+    text, pattern = request['text'], request['pattern']
+    size = len(pattern)
+    positions = []
+    for start in range(len(text) - size + 1):
+        offset = 0
+        while offset < size and text[start + offset] == pattern[offset]:
+            offset += 1
+        if offset == size:
+            positions.append(start)
+    return {'positions': positions}
 
 
 def kmp(request: dict) -> dict:
