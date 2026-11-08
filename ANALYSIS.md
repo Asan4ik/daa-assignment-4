@@ -3,7 +3,7 @@
 ## Environment and commands
 
 - Language: Python 3.14.7 (CPython, default interpreter, no JIT enabled). No compilation step.
-- OS/CPU/RAM: Windows 11 (10.0.26300), AMD64 (AMD Family 25 Model 68), <CPU MODEL>, <RAM> GB.
+- OS/CPU/RAM: Windows 11, AMD Ryzen 7 7435H, 16GB DDR5.
 - Setup check: `python tools/run.py --setup`
 - Public checks (44 public cases and the repeated mixed batch): `python tools/run.py --check`
 - Own tests: `python -m unittest discover -s tests/student -v`
