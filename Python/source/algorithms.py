@@ -100,8 +100,35 @@ def naive(request: dict) -> dict:
     return {'positions': positions}
 
 
+def prefix_function(pattern: str) -> list:
+    pi = [0] * len(pattern)
+    matched = 0
+    for i in range(1, len(pattern)):
+        while matched and pattern[i] != pattern[matched]:
+            matched = pi[matched - 1]
+        if pattern[i] == pattern[matched]:
+            matched += 1
+        pi[i] = matched
+    return pi
+
+
 def kmp(request: dict) -> dict:
-    raise NotImplementedError("TODO kmp")
+    text, pattern = request['text'], request['pattern']
+    size = len(pattern)
+    if size == 0:
+        return {'positions': list(range(len(text) + 1))}
+    pi = prefix_function(pattern)
+    positions = []
+    matched = 0
+    for i, char in enumerate(text):
+        while matched and char != pattern[matched]:
+            matched = pi[matched - 1]
+        if char == pattern[matched]:
+            matched += 1
+        if matched == size:
+            positions.append(i - size + 1)
+            matched = pi[matched - 1]
+    return {'positions': positions}
 
 
 def rk(request: dict) -> dict:
